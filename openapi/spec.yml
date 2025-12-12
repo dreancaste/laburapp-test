@@ -1,0 +1,520 @@
+openapi: 3.0.3
+info:
+  title: "LABURAPP API"
+  description: "API REST para la plataforma de marketplace de servicios LABURAPP."
+  version: "1.0.0"
+servers:
+  - url: "https://api.laburapp.com/v1"
+    description: "Servidor de Producción"
+  - url: "http://localhost:8080/v1"
+    description: "Servidor de Desarrollo (API Gateway)"
+
+# Define la seguridad de la API
+security:
+  - bearerAuth: []
+
+paths:
+  # ===========================================================================
+  #                            Servicio de Autenticación
+  # ===========================================================================
+  /auth/register:
+    post:
+      tags:
+        - Autenticación
+      summary: "Registrar un nuevo usuario"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterPayload'
+      responses:
+        '201':
+          description: "Usuario registrado exitosamente"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: "Datos de entrada inválidos"
+
+  /auth/login:
+    post:
+      tags:
+        - Autenticación
+      summary: "Iniciar sesión"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginPayload'
+      responses:
+        '200':
+          description: "Login exitoso"
+          content:
+            application/json:
+              schema:
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+        '401':
+          description: "Credenciales incorrectas"
+
+  /auth/verify-biometrics:
+    post:
+      tags:
+        - Autenticación
+      summary: "Verificar identidad con biometría"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                document_front:
+                  type: string
+                  format: binary
+                selfie:
+                  type: string
+                  format: binary
+      responses:
+        '202':
+          description: "Datos biométricos recibidos, en proceso de verificación"
+        '401':
+          description: "No autorizado"
+
+  # ===========================================================================
+  #                               Servicio de Perfiles
+  # ===========================================================================
+  /profiles/me:
+    get:
+      tags:
+        - Perfiles
+      summary: "Obtener el perfil del usuario autenticado"
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "Perfil del usuario"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: "No autorizado"
+        '404':
+          description: "Perfil no encontrado"
+
+    put:
+      tags:
+        - Perfiles
+      summary: "Actualizar el perfil del usuario autenticado"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfilePayload'
+      responses:
+        '200':
+          description: "Perfil actualizado correctamente"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: "Datos inválidos"
+        '401':
+          description: "No autorizado"
+
+  # ===========================================================================
+  #                         Servicio de Geolocalización
+  # ===========================================================================
+  /providers/search:
+    get:
+      tags:
+        - Geolocalización
+      summary: "Buscar proveedores por ubicación y servicio"
+      description: "Endpoint placeholder para buscar proveedores disponibles."
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: lat
+          schema:
+            type: number
+            format: double
+          required: true
+        - in: query
+          name: lon
+          schema:
+            type: number
+            format: double
+          required: true
+      responses:
+        '200':
+          description: "Búsqueda exitosa"
+
+  # ===========================================================================
+  #                             Servicio de Reservas
+  # ===========================================================================
+  /bookings:
+    post:
+      tags:
+        - Reservas
+      summary: "Crear una nueva reserva"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookingPayload'
+      responses:
+        '201':
+          description: "Reserva creada"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '400':
+          description: "Datos inválidos"
+
+  /bookings/{bookingId}:
+    get:
+      tags:
+        - Reservas
+      summary: "Obtener detalles de una reserva"
+      parameters:
+        - in: path
+          name: bookingId
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: "Detalles de la reserva"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '404':
+          description: "Reserva no encontrada"
+
+  /bookings/{bookingId}/confirm:
+    put:
+      tags:
+        - Reservas
+      summary: "Confirmar una reserva (Proveedor)"
+      parameters:
+        - in: path
+          name: bookingId
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: "Reserva confirmada"
+
+  # ===========================================================================
+  #                           Servicio de Reputación
+  # ===========================================================================
+  /reviews:
+    post:
+      tags:
+        - Reputación
+      summary: "Dejar una reseña para una reserva completada"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReviewPayload'
+      responses:
+        '201':
+          description: "Reseña creada"
+
+  # ===========================================================================
+  #                              Servicio de Pagos
+  # ===========================================================================
+  /wallet/transactions:
+    get:
+      tags:
+        - Pagos
+      summary: "Obtener historial de transacciones"
+      responses:
+        '200':
+          description: "Lista de transacciones"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Esquemas de Autenticación
+    RegisterPayload:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        phone_number:
+          type: string
+        role:
+          type: string
+          enum: [provider, client]
+      required:
+        - email
+        - password
+        - role
+
+    LoginPayload:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required:
+        - email
+        - password
+
+    # Esquemas de Usuario y Perfil
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        phone_number:
+          type: string
+        role:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    UserProfile:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        first_name:
+          type: string
+        last_name:
+          type: string
+        profile_picture_url:
+          type: string
+          format: uri
+        bio:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+        address:
+          type: string
+        certifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Certification'
+        work_experiences:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkExperience'
+
+    UpdateProfilePayload:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        profile_picture_url:
+          type: string
+          format: uri
+        bio:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+        address:
+          type: string
+
+    Certification:
+      type: object
+      properties:
+        title:
+          type: string
+        institution:
+          type: string
+        issue_date:
+          type: string
+          format: date
+        credential_url:
+          type: string
+          format: uri
+
+    WorkExperience:
+      type: object
+      properties:
+        job_title:
+          type: string
+        company_name:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+
+    # Esquemas de Reservas
+    Booking:
+      type: object
+      properties:
+        booking_id:
+          type: string
+          format: uuid
+        client_id:
+          type: string
+          format: uuid
+        provider_id:
+          type: string
+          format: uuid
+        service_details:
+          type: string
+        booking_time:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, confirmed, completed, cancelled]
+
+    CreateBookingPayload:
+      type: object
+      properties:
+        provider_id:
+          type: string
+          format: uuid
+        service_details:
+          type: string
+        booking_time:
+          type: string
+          format: date-time
+      required:
+        - provider_id
+        - booking_time
+
+    # Esquemas de Reputación
+    Review:
+      type: object
+      properties:
+        review_id:
+          type: string
+          format: uuid
+        booking_id:
+          type: string
+          format: uuid
+        reviewer_id:
+          type: string
+          format: uuid
+        reviewee_id:
+          type: string
+          format: uuid
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+
+    CreateReviewPayload:
+      type: object
+      properties:
+        booking_id:
+          type: string
+          format: uuid
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+      required:
+        - booking_id
+        - rating
+
+    # Esquemas de Pagos
+    Wallet:
+      type: object
+      properties:
+        wallet_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        balance:
+          type: number
+          format: double
+        currency:
+          type: string
+
+    Transaction:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+        wallet_id:
+          type: string
+          format: uuid
+        booking_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+        type:
+          type: string
+          enum: [deposit, withdrawal, payment, commission]
+        status:
+          type: string
+          enum: [pending, completed, failed]
+        created_at:
+          type: string
+          format: date-time
