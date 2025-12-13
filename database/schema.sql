@@ -39,6 +39,7 @@ CREATE TABLE users (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     last_login TIMESTAMPTZ,
+    refresh_token TEXT,
     FOREIGN KEY (role_id) REFERENCES roles(role_id)
 );
 

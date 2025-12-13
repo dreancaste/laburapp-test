@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgis/postgis:13-3.1
+    hostname: postgres
+    environment:
+      POSTGRES_USER: laburapp
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: laburapp_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - laburapp-net
+
+  authentication:
+    build:
+      context: ./services/authentication
+      dockerfile: Dockerfile
+    hostname: authentication
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./services/authentication/.env
+    depends_on:
+      - postgres
+    networks:
+      - laburapp-net
+
+  profiles:
+    build:
+      context: ./services/profiles
+      dockerfile: Dockerfile
+    hostname: profiles
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./services/profiles/.env
+    depends_on:
+      - postgres
+    networks:
+      - laburapp-net
+
+volumes:
+  postgres_data:
+
+networks:
+  laburapp-net:
+    driver: bridge
