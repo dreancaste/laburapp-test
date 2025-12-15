@@ -15,8 +15,9 @@ const ProfileScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profile</Text>
+      <Text style={styles.text}>Name: {user?.first_name} {user?.last_name}</Text>
       <Text style={styles.text}>Email: {user?.email}</Text>
-      <Text style={styles.text}>User ID: {user?.id}</Text>
+      <Text style={styles.text}>User ID: {user?.user_id}</Text>
       <Button title="Logout" onPress={handleLogout} />
     </View>
   );

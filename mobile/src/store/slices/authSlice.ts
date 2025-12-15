@@ -1,9 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface User {
-  id: string;
-  email: string;
-  // Add other user properties here
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string; // This is not in the profile, but we can add it for convenience
+  // Add other profile properties here
 }
 
 interface AuthState {

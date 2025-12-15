@@ -1,12 +1,9 @@
 import axios from 'axios';
-import { Platform } from 'react-native';
 import { store } from '../store';
-
-// Android emulator uses a different IP to access localhost
-const baseURL = Platform.OS === 'android' ? 'http://10.0.2.2:8080/v1' : 'http://localhost:8080/v1';
+import API_URL from '../config';
 
 const apiClient = axios.create({
-  baseURL,
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },

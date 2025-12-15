@@ -16,11 +16,11 @@ const auth = (req: AuthRequest, res: Response, next: NextFunction) => {
     return res.sendStatus(401);
   }
 
-  if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET is not defined');
+  if (!process.env.JWT_ACCESS_SECRET) {
+    throw new Error('JWT_ACCESS_SECRET is not defined');
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err: any, user: any) => {
+  jwt.verify(token, process.env.JWT_ACCESS_SECRET, (err: any, user: any) => {
     if (err) {
       return res.sendStatus(403);
     }

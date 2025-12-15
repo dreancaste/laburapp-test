@@ -20,7 +20,7 @@ const LoginScreen = ({ navigation }: any) => {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
-      dispatch(setCredentials({ token: accessToken, user: profileResponse.data }));
+      dispatch(setCredentials({ token: accessToken, user: { ...profileResponse.data, email } }));
     } catch (error) {
       console.error(error);
       // Handle login error (e.g., show an alert)

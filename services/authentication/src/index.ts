@@ -75,18 +75,18 @@ app.post('/login', async (req, res) => {
     }
 
     // Generate JWT
-    if (!process.env.JWT_SECRET) {
-      throw new Error('JWT_SECRET is not defined');
+    if (!process.env.JWT_ACCESS_SECRET || !process.env.JWT_REFRESH_SECRET) {
+      throw new Error('JWT secrets are not defined');
     }
     const accessToken = jwt.sign(
       { userId: user.user_id, role: user.role_id },
-      process.env.JWT_SECRET,
+      process.env.JWT_ACCESS_SECRET,
       { expiresIn: '15m' } // Short-lived access token
     );
 
     const refreshToken = jwt.sign(
       { userId: user.user_id },
-      process.env.JWT_SECRET, // Should be a different secret in production
+      process.env.JWT_REFRESH_SECRET,
       { expiresIn: '7d' } // Long-lived refresh token
     );
 
@@ -107,11 +107,11 @@ app.post('/refresh', async (req, res) => {
   }
 
   try {
-    if (!process.env.JWT_SECRET) {
-      throw new Error('JWT_SECRET is not defined');
+    if (!process.env.JWT_ACCESS_SECRET || !process.env.JWT_REFRESH_SECRET) {
+      throw new Error('JWT secrets are not defined');
     }
 
-    const decoded: any = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    const decoded: any = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
     // Check if refresh token is in the database
     const userRes = await pool.query('SELECT * FROM users WHERE user_id = $1 AND refresh_token = $2', [decoded.userId, refreshToken]);
@@ -123,7 +123,7 @@ app.post('/refresh', async (req, res) => {
 
     const accessToken = jwt.sign(
       { userId: user.user_id, role: user.role_id },
-      process.env.JWT_SECRET,
+      process.env.JWT_ACCESS_SECRET,
       { expiresIn: '15m' }
     );
 
